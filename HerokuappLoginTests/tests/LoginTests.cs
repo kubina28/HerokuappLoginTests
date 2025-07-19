@@ -64,19 +64,43 @@ namespace HerokuappLoginTests.tests
             await Expect(loginPage.FlashMessage).ToContainTextAsync(Constants.InvalidUsernameMessage);
         }
 
-        // Note: The following three tests could be replaced by a single, parameterized [TestCase] test.It's just sample. 
-        // At first doesn't work now for invalid password message (easy to fix), but this approach is not used here because it can add a level of abstraction that is difficult for inexperienced users.
-        //[TestCase("", "", Description = "Empty username and password")]
-        //[TestCase(Constants.ValidCredentials.Username, "", Description = "Empty password")]
-        //[TestCase("", Constants.ValidCredentials.Password, Description = "Empty username")]
-        //public async Task ShouldFailLoginWithEmptyCredentials(string username, string password)
-        //{
-        //    // Act
-        //    await loginPage.LoginAsync(username, password);
+        //Note: I just testing actual state, not judging if expected to have enabled login button with empty inputs
+        [Test(Description = "Test that the login button is enabled on page load")]
+        public async Task ShouldHaveEnabledLoginButton()
+        {
+            // Assert
+            await Expect(loginPage.LoginButton).ToBeEnabledAsync();
 
-        //    // Assert
-        //    await Expect(loginPage.FlashMessage).ToContainTextAsync(Constants.InvalidUsernameMessage);
-        //}
+        }
+
+        [Test(Description = "Test that the flash message can be closed")]
+        public async Task ShouldCloseFlashMessage()
+        {
+            // Arrange: Trigger a message to appear by failing to log in
+            await loginPage.LoginAsync(Constants.InvalidCredentials.Username, Constants.InvalidCredentials.Password);
+            await Expect(loginPage.FlashMessage).ToBeVisibleAsync();
+
+            // Act: Close the message
+            await loginPage.CloseFlashMessageButton.ClickAsync();
+
+            // Assert: Verify the message is no longer visible
+            await Expect(loginPage.FlashMessage).Not.ToBeVisibleAsync();
+        }
+
+        [Test(Description = "Test that an error message is replaced by a success message")]
+        public async Task ShouldReplaceErrorMessageWithSuccessMessage()
+        {
+            // Arrange: First, fail the login to show the error message
+            await loginPage.LoginAsync(Constants.InvalidCredentials.Username, Constants.InvalidCredentials.Password);
+            await Expect(loginPage.FlashMessage).ToContainTextAsync(Constants.InvalidUsernameMessage);
+
+            // Act: Now, perform a successful login
+            await loginPage.LoginAsync(Constants.ValidCredentials.Username, Constants.ValidCredentials.Password);
+
+            // Assert: Verify that the new message is the success message
+            await Expect(loginPage.FlashMessage).ToContainTextAsync(Constants.SuccessfulLoginMessage);
+            await Expect(loginPage.FlashMessage).Not.ToContainTextAsync(Constants.InvalidUsernameMessage);
+        }
 
         [Test(Description = "Test login failure with empty username and password")]
         public async Task ShouldFailLoginWithBothCredentialsEmpty()
@@ -108,12 +132,22 @@ namespace HerokuappLoginTests.tests
             await Expect(loginPage.FlashMessage).ToContainTextAsync(Constants.InvalidUsernameMessage);
         }
 
-        [Test(Description = "Test that the login button is enabled on page load")]
-        public async Task ShouldHaveEnabledLoginButton()
-        {
-            // Assert
-            await Expect(loginPage.LoginButton).ToBeEnabledAsync();
-        }
+        // Note: The previous three tests could be replaced by a single, parameterized [TestCase] test.It's just sample. 
+        // At first doesn't work now for invalid password message (easy to fix), but this approach is not used here because it can add a level of abstraction that is difficult for inexperienced users.
+        
+        //[TestCase("", "", Description = "Empty username and password")]
+        //[TestCase(Constants.ValidCredentials.Username, "", Description = "Empty password")]
+        //[TestCase("", Constants.ValidCredentials.Password, Description = "Empty username")]
+        //public async Task ShouldFailLoginWithEmptyCredentials(string username, string password)
+        //{
+        //    // Act
+        //    await loginPage.LoginAsync(username, password);
+
+        //    // Assert
+        //    await Expect(loginPage.FlashMessage).ToContainTextAsync(Constants.InvalidUsernameMessage);
+        //}
+
     }
 }
+
 
